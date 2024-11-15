@@ -17,11 +17,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.util.function.Tuple2;
 
 import java.time.OffsetDateTime;
+import java.util.List;
 
 @Slf4j
 @Service
@@ -32,7 +32,7 @@ public class AppServiceImpl implements AppService {
   private final SectorRepository sectorRepository;
   
   @Override
-  public Flux<RetailerDto> findAllRetailers() {
+  public Mono<List<RetailerDto>> findAllRetailers() {
     log.debug("findAllRetailers");
     return this.retailerRepository.findAllByIsActiveIsTrue()
       .flatMap(retailer ->
@@ -44,7 +44,8 @@ public class AppServiceImpl implements AppService {
         retailerDto.setSectorName(tuple.getT2().getName());
         return retailerDto;
       })
-      .doOnNext(retailer -> log.debug(retailer.toString()));
+      .doOnNext(retailer -> log.debug(retailer.toString()))
+      .collectList();
   }
   
   @Override
@@ -81,11 +82,12 @@ public class AppServiceImpl implements AppService {
   }
   
   @Override
-  public Flux<SectorDto> findAllSectors() {
+  public Mono<List<SectorDto>> findAllSectors() {
     log.debug("findAllSectors");
     return this.sectorRepository.findAllByIsActiveIsTrue()
       .doOnNext(sector -> log.debug(sector.toString()))
-      .map(SectorMapper.INSTANCE::entityToDto);
+      .map(SectorMapper.INSTANCE::entityToDto)
+      .collectList();
   }
   
   @Override

@@ -164,12 +164,12 @@ class AppServiceTest {
       .thenReturn(Mono.just(expectedSector));
     
     StepVerifier.create(appService.findAllRetailers())
-      .assertNext(receivedRetailer -> assertRetailer(expectedRetailersMap.get(receivedRetailer.getId()),
-        receivedRetailer))
-      .assertNext(receivedRetailer -> assertRetailer(expectedRetailersMap.get(receivedRetailer.getId()),
-        receivedRetailer))
-      .assertNext(receivedRetailer -> assertRetailer(expectedRetailersMap.get(receivedRetailer.getId()),
-        receivedRetailer))
+      .assertNext(receivedRetailers -> {
+        for(RetailerDto receivedRetailer : receivedRetailers){
+          assertRetailer(expectedRetailersMap.get(receivedRetailer.getId()),
+            receivedRetailer);
+        }
+      })
       .expectComplete()
       .verify();
     
@@ -215,9 +215,11 @@ class AppServiceTest {
       .thenReturn(Flux.fromIterable(expectedSectors));
     
     StepVerifier.create(appService.findAllSectors())
-      .assertNext(receivedSector -> assertSector(expectedSectorsMap.get(receivedSector.getId()), receivedSector))
-      .assertNext(receivedSector -> assertSector(expectedSectorsMap.get(receivedSector.getId()), receivedSector))
-      .assertNext(receivedSector -> assertSector(expectedSectorsMap.get(receivedSector.getId()), receivedSector))
+      .assertNext(receivedSectors -> {
+        for(SectorDto receivedSector : receivedSectors){
+          assertSector(expectedSectorsMap.get(receivedSector.getId()), receivedSector);
+        }
+      })
       .expectComplete()
       .verify();
   }

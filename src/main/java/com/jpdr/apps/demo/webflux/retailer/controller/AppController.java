@@ -12,8 +12,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+
+import java.util.List;
 
 @Slf4j
 @RestController
@@ -23,33 +24,40 @@ public class AppController {
   private final AppService appService;
   
   @GetMapping("/retailers")
-  public ResponseEntity<Flux<RetailerDto>> findAllRetailers(){
-    return new ResponseEntity<>(appService.findAllRetailers(), HttpStatus.OK);
+  public Mono<ResponseEntity<List<RetailerDto>>> findAllRetailers(){
+    return this.appService.findAllRetailers()
+      .map(retailers -> new ResponseEntity<>(retailers, HttpStatus.OK));
   }
   
   @GetMapping("/retailers/{retailerId}")
-  public ResponseEntity<Mono<RetailerDto>> findRetailerById(@PathVariable(name="retailerId") Integer retailerId){
-    return new ResponseEntity<>(appService.findRetailerById(retailerId), HttpStatus.OK);
+  public Mono<ResponseEntity<RetailerDto>> findRetailerById(@PathVariable(name="retailerId") Integer retailerId){
+    return this.appService.findRetailerById(retailerId)
+      .map(retailer -> new ResponseEntity<>(retailer, HttpStatus.OK));
   }
   
   @PostMapping("/retailers")
-  public ResponseEntity<Mono<RetailerDto>> createRetailer(@RequestBody RetailerDto retailerDto){
-    return new ResponseEntity<>(appService.createRetailer(retailerDto), HttpStatus.CREATED);
+  public Mono<ResponseEntity<RetailerDto>> createRetailer(@RequestBody RetailerDto retailerDto){
+    return this.appService.createRetailer(retailerDto)
+      .map(retailer -> new ResponseEntity<>(retailer, HttpStatus.CREATED));
   }
   
   @GetMapping("/sectors")
-  public ResponseEntity<Flux<SectorDto>> findAllSectors(){
-    return new ResponseEntity<>(appService.findAllSectors(), HttpStatus.OK);
+  public Mono<ResponseEntity<List<SectorDto>>> findAllSectors(){
+    return this.appService.findAllSectors()
+      .map(sectors -> new ResponseEntity<>(sectors, HttpStatus.OK));
   }
   
   @GetMapping("/sectors/{sectorId}")
-  public ResponseEntity<Mono<SectorDto>> findSectorById(@PathVariable(name="sectorId") Integer sectorId){
-    return new ResponseEntity<>(appService.findSectorById(sectorId), HttpStatus.OK);
+  public Mono<ResponseEntity<SectorDto>> findSectorById(
+    @PathVariable(name="sectorId") Integer sectorId){
+    return this.appService.findSectorById(sectorId)
+      .map(sector -> new ResponseEntity<>(sector, HttpStatus.OK));
   }
   
   @PostMapping("/sectors")
-  public ResponseEntity<Mono<SectorDto>> createSector(@RequestBody SectorDto sectorDto){
-    return new ResponseEntity<>(appService.createSector(sectorDto), HttpStatus.CREATED);
+  public Mono<ResponseEntity<SectorDto>> createSector(@RequestBody SectorDto sectorDto){
+    return this.appService.createSector(sectorDto)
+      .map(sector -> new ResponseEntity<>(sector, HttpStatus.CREATED));
   }
   
 }
