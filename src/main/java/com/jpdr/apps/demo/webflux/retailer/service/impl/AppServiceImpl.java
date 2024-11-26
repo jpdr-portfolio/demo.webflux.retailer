@@ -1,5 +1,6 @@
 package com.jpdr.apps.demo.webflux.retailer.service.impl;
 
+import com.jpdr.apps.demo.webflux.eventlogger.component.EventLogger;
 import com.jpdr.apps.demo.webflux.retailer.exception.RetailerNotFoundException;
 import com.jpdr.apps.demo.webflux.retailer.exception.SectorNotFoundException;
 import com.jpdr.apps.demo.webflux.retailer.model.Retailer;
@@ -30,6 +31,7 @@ public class AppServiceImpl implements AppService {
   
   private final RetailerRepository retailerRepository;
   private final SectorRepository sectorRepository;
+  private final EventLogger eventLogger;
   
   @Override
   public Mono<List<RetailerDto>> findAllRetailers() {
@@ -45,7 +47,8 @@ public class AppServiceImpl implements AppService {
         return retailerDto;
       })
       .doOnNext(retailer -> log.debug(retailer.toString()))
-      .collectList();
+      .collectList()
+      .doOnNext(list -> this.eventLogger.logEvent("findAllRetailers", list));
   }
   
   @Override
@@ -62,7 +65,8 @@ public class AppServiceImpl implements AppService {
         retailerDto.setSectorName(tuple.getT2().getName());
         return retailerDto;
       })
-      .doOnNext(retailer -> log.debug(retailer.toString()));
+      .doOnNext(retailer -> log.debug(retailer.toString()))
+      .doOnNext(retailer -> this.eventLogger.logEvent("findRetailerById", retailer));
   }
   
   @Override
@@ -78,7 +82,8 @@ public class AppServiceImpl implements AppService {
       })
       .flatMap(this.retailerRepository::save)
       .doOnNext(retailer -> log.debug(retailer.toString()))
-      .map(RetailerMapper.INSTANCE::entityToDto);
+      .map(RetailerMapper.INSTANCE::entityToDto)
+      .doOnNext(retailer -> this.eventLogger.logEvent("createRetailer", retailer));
   }
   
   @Override
@@ -87,7 +92,8 @@ public class AppServiceImpl implements AppService {
     return this.sectorRepository.findAllByIsActiveIsTrue()
       .doOnNext(sector -> log.debug(sector.toString()))
       .map(SectorMapper.INSTANCE::entityToDto)
-      .collectList();
+      .collectList()
+      .doOnNext(list -> this.eventLogger.logEvent("findAllSectors", list));
   }
   
   @Override
@@ -96,7 +102,8 @@ public class AppServiceImpl implements AppService {
     return this.sectorRepository.findByIdAndIsActiveIsTrue(sectorId)
       .switchIfEmpty(Mono.error(new SectorNotFoundException(sectorId)))
       .doOnNext(sector -> log.debug(sector.toString()))
-      .map(SectorMapper.INSTANCE::entityToDto);
+      .map(SectorMapper.INSTANCE::entityToDto)
+      .doOnNext(sector -> this.eventLogger.logEvent("findSectorById", sector));
   }
   
   @Override
@@ -112,7 +119,8 @@ public class AppServiceImpl implements AppService {
         })
       .flatMap(sectorRepository::save)
       .doOnNext(sector -> log.debug(sector.toString()))
-      .map(SectorMapper.INSTANCE::entityToDto);
+      .map(SectorMapper.INSTANCE::entityToDto)
+      .doOnNext(sector -> this.eventLogger.logEvent("createSector", sector));
   }
   
   private Mono<RetailerDto> validateRetailer(RetailerDto retailerDto){

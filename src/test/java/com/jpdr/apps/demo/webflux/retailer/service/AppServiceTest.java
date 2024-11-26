@@ -1,5 +1,6 @@
 package com.jpdr.apps.demo.webflux.retailer.service;
 
+import com.jpdr.apps.demo.webflux.eventlogger.component.EventLogger;
 import com.jpdr.apps.demo.webflux.retailer.exception.SectorNotFoundException;
 import com.jpdr.apps.demo.webflux.retailer.model.Retailer;
 import com.jpdr.apps.demo.webflux.retailer.model.Sector;
@@ -56,6 +57,9 @@ class AppServiceTest {
   
   @Mock
   private SectorRepository sectorRepository;
+  
+  @Mock
+  private EventLogger eventLogger;
   
   @Test
   @DisplayName("OK - Find Retailer By Id")
