@@ -1,6 +1,7 @@
 package com.jpdr.apps.demo.webflux.retailer.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jpdr.apps.demo.webflux.eventlogger.component.EventLogger;
 import com.jpdr.apps.demo.webflux.retailer.service.AppService;
 import com.jpdr.apps.demo.webflux.retailer.service.dto.RetailerDto;
 import com.jpdr.apps.demo.webflux.retailer.service.dto.SectorDto;
@@ -42,6 +43,8 @@ class AppControllerTest {
   private AppService appService;
   @Autowired
   private ObjectMapper objectMapper;
+  @MockBean
+  private EventLogger eventLogger;
   
   @Test
   @DisplayName("OK - Find Retailer By Id")

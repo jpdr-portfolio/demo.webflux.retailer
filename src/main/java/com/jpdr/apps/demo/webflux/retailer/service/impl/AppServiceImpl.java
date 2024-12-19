@@ -1,6 +1,5 @@
 package com.jpdr.apps.demo.webflux.retailer.service.impl;
 
-import com.jpdr.apps.demo.webflux.eventlogger.component.EventLogger;
 import com.jpdr.apps.demo.webflux.retailer.exception.RetailerNotFoundException;
 import com.jpdr.apps.demo.webflux.retailer.exception.SectorNotFoundException;
 import com.jpdr.apps.demo.webflux.retailer.model.Retailer;
@@ -16,6 +15,7 @@ import com.jpdr.apps.demo.webflux.retailer.util.InputValidator;
 import jakarta.validation.ValidationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
@@ -31,7 +31,6 @@ public class AppServiceImpl implements AppService {
   
   private final RetailerRepository retailerRepository;
   private final SectorRepository sectorRepository;
-  private final EventLogger eventLogger;
   
   @Override
   public Mono<List<RetailerDto>> findAllRetailers() {
@@ -47,11 +46,11 @@ public class AppServiceImpl implements AppService {
         return retailerDto;
       })
       .doOnNext(retailer -> log.debug(retailer.toString()))
-      .collectList()
-      .doOnNext(list -> this.eventLogger.logEvent("findAllRetailers", list));
+      .collectList();
   }
   
   @Override
+  @Cacheable(key = "#retailerId", value = "retailers", sync = true)
   public Mono<RetailerDto> findRetailerById(Integer retailerId) {
     log.debug("findRetailerById");
     return this.retailerRepository.findByIdAndIsActiveIsTrue(retailerId)
@@ -65,8 +64,7 @@ public class AppServiceImpl implements AppService {
         retailerDto.setSectorName(tuple.getT2().getName());
         return retailerDto;
       })
-      .doOnNext(retailer -> log.debug(retailer.toString()))
-      .doOnNext(retailer -> this.eventLogger.logEvent("findRetailerById", retailer));
+      .doOnNext(retailer -> log.debug(retailer.toString()));
   }
   
   @Override
@@ -82,8 +80,7 @@ public class AppServiceImpl implements AppService {
       })
       .flatMap(this.retailerRepository::save)
       .doOnNext(retailer -> log.debug(retailer.toString()))
-      .map(RetailerMapper.INSTANCE::entityToDto)
-      .doOnNext(retailer -> this.eventLogger.logEvent("createRetailer", retailer));
+      .map(RetailerMapper.INSTANCE::entityToDto);
   }
   
   @Override
@@ -92,18 +89,17 @@ public class AppServiceImpl implements AppService {
     return this.sectorRepository.findAllByIsActiveIsTrue()
       .doOnNext(sector -> log.debug(sector.toString()))
       .map(SectorMapper.INSTANCE::entityToDto)
-      .collectList()
-      .doOnNext(list -> this.eventLogger.logEvent("findAllSectors", list));
+      .collectList();
   }
   
   @Override
+  @Cacheable(key = "#sectorId", value = "sectors", sync = true)
   public Mono<SectorDto> findSectorById(Integer sectorId) {
     log.debug("findSectorById");
     return this.sectorRepository.findByIdAndIsActiveIsTrue(sectorId)
       .switchIfEmpty(Mono.error(new SectorNotFoundException(sectorId)))
       .doOnNext(sector -> log.debug(sector.toString()))
-      .map(SectorMapper.INSTANCE::entityToDto)
-      .doOnNext(sector -> this.eventLogger.logEvent("findSectorById", sector));
+      .map(SectorMapper.INSTANCE::entityToDto);
   }
   
   @Override
@@ -119,8 +115,7 @@ public class AppServiceImpl implements AppService {
         })
       .flatMap(sectorRepository::save)
       .doOnNext(sector -> log.debug(sector.toString()))
-      .map(SectorMapper.INSTANCE::entityToDto)
-      .doOnNext(sector -> this.eventLogger.logEvent("createSector", sector));
+      .map(SectorMapper.INSTANCE::entityToDto);
   }
   
   private Mono<RetailerDto> validateRetailer(RetailerDto retailerDto){
