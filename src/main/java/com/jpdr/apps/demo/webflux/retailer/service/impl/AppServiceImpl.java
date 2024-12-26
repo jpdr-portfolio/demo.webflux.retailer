@@ -68,6 +68,7 @@ public class AppServiceImpl implements AppService {
   }
   
   @Override
+  @Cacheable(key = "#retailerId", value = "retailers", sync = true)
   @Transactional
   public Mono<RetailerDto> createRetailer(RetailerDto retailerDto) {
     log.debug("createRetailer");
@@ -103,6 +104,7 @@ public class AppServiceImpl implements AppService {
   }
   
   @Override
+  @Cacheable(key = "#sectorId", value = "sectors", sync = true)
   @Transactional
   public Mono<SectorDto> createSector(SectorDto sectorDto) {
     log.debug("createSector");
