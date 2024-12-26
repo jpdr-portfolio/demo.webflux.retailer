@@ -36,7 +36,7 @@ public class AppServiceImpl implements AppService {
   public Mono<List<RetailerDto>> findAllRetailers() {
     log.debug("findAllRetailers");
     return this.retailerRepository.findAllByIsActiveIsTrue()
-      .flatMap(retailer ->
+      .flatMapSequential(retailer ->
         Mono.zip(
           Mono.just(retailer),
           findSectorById(retailer.getSectorId())))
