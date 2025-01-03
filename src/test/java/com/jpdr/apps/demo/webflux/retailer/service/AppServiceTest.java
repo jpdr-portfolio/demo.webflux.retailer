@@ -1,5 +1,6 @@
 package com.jpdr.apps.demo.webflux.retailer.service;
 
+import com.jpdr.apps.demo.webflux.commons.caching.CacheHelper;
 import com.jpdr.apps.demo.webflux.retailer.exception.SectorNotFoundException;
 import com.jpdr.apps.demo.webflux.retailer.model.Retailer;
 import com.jpdr.apps.demo.webflux.retailer.model.Sector;
@@ -50,12 +51,12 @@ class AppServiceTest {
   
   @InjectMocks
   private AppServiceImpl appService;
-  
   @Mock
   private RetailerRepository retailerRepository;
-  
   @Mock
   private SectorRepository sectorRepository;
+  @Mock
+  private CacheHelper cacheHelper;
   
   @Test
   @DisplayName("OK - Find Retailer By Id")

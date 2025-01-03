@@ -1,5 +1,6 @@
 package com.jpdr.apps.demo.webflux.retailer.service.impl;
 
+import com.jpdr.apps.demo.webflux.commons.caching.CacheHelper;
 import com.jpdr.apps.demo.webflux.retailer.exception.RetailerNotFoundException;
 import com.jpdr.apps.demo.webflux.retailer.exception.SectorNotFoundException;
 import com.jpdr.apps.demo.webflux.retailer.model.Retailer;
@@ -11,7 +12,7 @@ import com.jpdr.apps.demo.webflux.retailer.service.dto.RetailerDto;
 import com.jpdr.apps.demo.webflux.retailer.service.dto.SectorDto;
 import com.jpdr.apps.demo.webflux.retailer.service.mapper.RetailerMapper;
 import com.jpdr.apps.demo.webflux.retailer.service.mapper.SectorMapper;
-import com.jpdr.apps.demo.webflux.retailer.util.InputValidator;
+import com.jpdr.apps.demo.webflux.commons.validation.InputValidator;
 import jakarta.validation.ValidationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,6 +32,7 @@ public class AppServiceImpl implements AppService {
   
   private final RetailerRepository retailerRepository;
   private final SectorRepository sectorRepository;
+  private final CacheHelper cacheHelper;
   
   @Override
   public Mono<List<RetailerDto>> findAllRetailers() {
@@ -68,7 +70,6 @@ public class AppServiceImpl implements AppService {
   }
   
   @Override
-  @Cacheable(key = "#retailerId", value = "retailers", sync = true)
   @Transactional
   public Mono<RetailerDto> createRetailer(RetailerDto retailerDto) {
     log.debug("createRetailer");
@@ -81,7 +82,9 @@ public class AppServiceImpl implements AppService {
       })
       .flatMap(this.retailerRepository::save)
       .doOnNext(retailer -> log.debug(retailer.toString()))
-      .map(RetailerMapper.INSTANCE::entityToDto);
+      .map(RetailerMapper.INSTANCE::entityToDto)
+      .doOnNext(savedRetailer -> this.cacheHelper.put("retailers",
+        savedRetailer.getId(), savedRetailer));
   }
   
   @Override
@@ -104,7 +107,6 @@ public class AppServiceImpl implements AppService {
   }
   
   @Override
-  @Cacheable(key = "#sectorId", value = "sectors", sync = true)
   @Transactional
   public Mono<SectorDto> createSector(SectorDto sectorDto) {
     log.debug("createSector");
@@ -117,7 +119,9 @@ public class AppServiceImpl implements AppService {
         })
       .flatMap(sectorRepository::save)
       .doOnNext(sector -> log.debug(sector.toString()))
-      .map(SectorMapper.INSTANCE::entityToDto);
+      .map(SectorMapper.INSTANCE::entityToDto)
+      .doOnNext(savedSector -> this.cacheHelper.put("sectors",
+        savedSector.getId(), savedSector));
   }
   
   private Mono<RetailerDto> validateRetailer(RetailerDto retailerDto){
